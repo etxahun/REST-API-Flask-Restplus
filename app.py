@@ -5,7 +5,7 @@ import os, json
 from os import listdir
 from os.path import isfile, join
 
-app = Flask(__name__)
+app = Flask(__name__)   #  Create a Flask WSGI application
 blueprint = Blueprint('api', __name__, url_prefix='/api')
 api = Api(blueprint, version='1.1', title='ESB Services API', description='A simple Services API.', doc='/doc') # to disable SwaggerUI add the following: , doc=False
 app.register_blueprint(blueprint)
