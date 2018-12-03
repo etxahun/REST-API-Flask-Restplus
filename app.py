@@ -64,7 +64,7 @@ class ServiceList(Resource):
         print(services)
         return services, 200
 
-    @ns.expect(b_service)
+    @ns.expect(b_service, validate=True)
     @ns.marshal_with(b_service, code=201)
     def post(self):
         '''Create a new service'''
@@ -98,7 +98,7 @@ class Service(Resource):
         else:
             return {"error": "Service not found."}, 404
 
-    @ns.expect(b_service)
+    @ns.expect(b_service, validate=True)
     @ns.marshal_with(b_service)
     def put(self, service_name):
         '''Update a service given its service name'''
