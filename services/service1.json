@@ -1,1 +1,1 @@
-{"name": "service1", "command": "echo"}
+{"name": "service1", "enforcer": "s1_enforcer.sh"}

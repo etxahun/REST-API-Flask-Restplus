@@ -2,11 +2,12 @@ from flask import Flask, Blueprint
 from flask_restplus import Api, Resource, fields
 
 import os, json
+import subprocess
 from os import listdir
 from os.path import isfile, join
 
 app = Flask(__name__)   #  Create a Flask WSGI application
-blueprint = Blueprint('api', __name__, url_prefix='/api')
+blueprint = Blueprint('api', __name__, url_prefix='/api/v1')
 api = Api(blueprint, version='1.1', title='ESB Services API', description='A simple Services API.', doc='/doc') # to disable SwaggerUI add the following: , doc=False
 app.register_blueprint(blueprint)
 
@@ -16,9 +17,10 @@ ns = api.namespace('services', description='Service operations')
 # Model:
 a_service = api.model('Service_List', {'name' : fields.String(required=True, description='The service name.')})
 b_service = api.model('Service', {'name' : fields.String(required=True, description='The service name.'),
-                                  'command' : fields.String(required=True, description='The command to execute.')})
+                                  'enforcer' : fields.String(required=True, description='The script to be executed | stopped.')})
+action = api.model('Action', {'action' : fields.String(required=True, description='start|stop')})
 
-#####################
+######################
 # Auxiliary Function ###########################################################
 ######################
 def filesInDir():
@@ -95,6 +97,26 @@ class Service(Resource):
             with open(os.path.join("services", service_name + str('.json'))) as f:
                 data = json.load(f)
                 return data
+        else:
+            return {"error": "Service not found."}, 404
+
+    @ns.expect(action, validate=True)
+    def post(self, service_name):
+        '''Executes 'enforcer' script'''
+        service = check_service_existence(service_name)
+        args = api.payload # Arguments received in PUT JSON
+        # print("Args: " + str(args))
+        # print(args.get('action'))
+        if service:
+            with open(os.path.join("services", service_name + str('.json'))) as f:
+                data = json.load(f)
+                enf_script = data['enforcer']
+                # print("Data: " + str(data))
+                # print("Enforcer Script: " + str(data['enforcer']))
+                rc = subprocess.call(os.path.join("enforcers", enf_script))
+                if rc != 0:
+                    raise RuntimeError('The sensitive command failed!')
+                    return data['enforcer']
         else:
             return {"error": "Service not found."}, 404
 
